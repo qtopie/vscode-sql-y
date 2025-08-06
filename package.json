@@ -12,6 +12,18 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "SQL",
+        "aliases": [
+          "sql",
+          "SQL"
+        ],
+        "extensions": [
+          ".sql"
+        ]
+      }
+    ],
     "commands": [
       {
         "command": "sql-y.helloWorld",
