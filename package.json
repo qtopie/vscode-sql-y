@@ -14,8 +14,19 @@
   "contributes": {
     "commands": [
       {
-        "command": "sql-y.helloWorld",
-        "title": "Hello World"
+        "command": "sql-y.write-sql-for-me",
+        "title": "SQL-Y: Write SQL"
+      }
+    ],
+    "languages": [
+      {
+        "id": "SQL",
+        "aliases": [
+          "SQL"
+        ],
+        "extensions": [
+          ".sql"
+        ]
       }
     ]
   },
