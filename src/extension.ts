@@ -38,8 +38,32 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.window.showInformationMessage('Please teach me how???');
 	});
-
 	context.subscriptions.push(disposable);
+
+	const rewriteDisposable = vscode.commands.registerCommand('sql-y.rewrite-sql-for-me', async () => {
+		// The code you place here will be executed every time your command is executed
+		// Display a message box to the user
+		const editor = vscode.window.activeTextEditor;
+		if (editor) {
+			const uri = vscode.Uri.parse(`${MarkdownContentProvider.scheme}:preview.md`);
+
+			// Store the content so the provider can retrieve it.
+			// contentMap.set(uri.toString(), textContent);
+
+			// This command opens the virtual document in a new editor pane.
+			const doc = await vscode.workspace.openTextDocument(uri);
+			await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside });
+
+			// Now execute the built-in markdown preview command on the new document.
+			await vscode.commands.executeCommand('markdown.showPreview');
+		} else {
+			vscode.window.showInformationMessage('No active editor found.');
+		}
+
+		vscode.window.showInformationMessage('Please teach me how???');
+	});
+
+	context.subscriptions.push(rewriteDisposable);
 }
 
 // This method is called when your extension is deactivated
