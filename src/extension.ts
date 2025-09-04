@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { MarkdownContentProvider } from './markdownContentProvider';
+import { client } from './daprClient';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -32,6 +33,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// Now execute the built-in markdown preview command on the new document.
 			await vscode.commands.executeCommand('markdown.showPreview');
+
+			client.AutoComplete({ name: 'worlld' }, (error: any, response: { content: string }) => {
+				if (error) {
+					console.log('Error:', error);
+					return;
+				}
+
+				console.log('Greeting:', response.content);
+			})
 		} else {
 			vscode.window.showInformationMessage('No active editor found.');
 		}

@@ -1,7 +1,9 @@
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
+const grpc = require('@grpc/grpc-js');
+const protoLoader = require('@grpc/proto-loader');
+const path = require('path');
 
-const PROTO_PATH = 'path/to/dapr/proto/dapr.proto'; // 替换为实际路径
+
+const PROTO_PATH = './proto/copilot.proto'; // 替换为实际路径
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -9,9 +11,12 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   enums: String,
   defaults: true,
   oneofs: true,
+  includeDirs: [
+    path.join(__dirname, 'proto')
+  ]
 });
 
-const daprProto = grpc.loadPackageDefinition(packageDefinition).dapr;
+const assistantProto = grpc.loadPackageDefinition(packageDefinition).assistant;
 
 // 创建 gRPC 客户端
-const client = new daprProto.Dapr('localhost:1234', grpc.credentials.createInsecure());
+export const client = new assistantProto.CopilotService('localhost:1234', grpc.credentials.createInsecure());
