@@ -23,25 +23,32 @@ export function activate(context: vscode.ExtensionContext) {
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
 			const uri = vscode.Uri.parse(`${MarkdownContentProvider.scheme}:preview.md`);
-
-			// Store the content so the provider can retrieve it.
-			// contentMap.set(uri.toString(), textContent);
-
-			// This command opens the virtual document in a new editor pane.
 			const doc = await vscode.workspace.openTextDocument(uri);
-			await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside });
+			const provider = new MarkdownContentProvider();
 
-			// Now execute the built-in markdown preview command on the new document.
+			// Register the provider and open the Markdown preview
+			vscode.workspace.registerTextDocumentContentProvider(MarkdownContentProvider.scheme, provider);
+			await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside });
 			await vscode.commands.executeCommand('markdown.showPreview');
 
-			client.AutoComplete({ name: 'worlld' }, (error: any, response: { content: string }) => {
-				if (error) {
-					console.log('Error:', error);
-					return;
-				}
+			// Stream the response and update the Markdown content
+			const userRequest = { message: 'Generate SQL query' };
+			const call = client.Chat(userRequest);
 
-				console.log('Greeting:', response.content);
-			})
+			call.on('data', (response: { content: string }) => {
+				const currentContent = provider.provideTextDocumentContent(uri);
+				const updatedContent = `${currentContent}\n${response.content}`;
+				provider.setContent(uri, updatedContent); // Update the Markdown content
+			});
+
+			call.on('end', () => {
+				vscode.window.showInformationMessage('Streaming completed.');
+			});
+
+			call.on('error', (error: any) => {
+				console.error('Error during streaming:', error);
+				vscode.window.showErrorMessage('An error occurred during streaming.');
+			});
 		} else {
 			vscode.window.showInformationMessage('No active editor found.');
 		}

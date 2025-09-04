@@ -3,7 +3,7 @@ const protoLoader = require('@grpc/proto-loader');
 const path = require('path');
 
 
-const PROTO_PATH = './proto/copilot.proto'; // 替换为实际路径
+const PROTO_PATH = 'copilot.proto';
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
