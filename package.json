@@ -9,7 +9,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onView:sqlYCopilotView"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [
@@ -37,11 +39,6 @@
         "title": "SQL-Y: Write SQL"
       },
       {
-        "command": "sql-y.rewrite-sql-for-me",
-        "icon": "$(lightbulb)",
-        "title": "SQL-Y: ReWrite SQL"
-      },
-      {
         "command": "sql-y.openChat",
         "title": "SQL-Y: Open Chat"
       }
@@ -51,18 +48,13 @@
         {
           "command": "sql-y.write-sql-for-me",
           "when": "editorLangId == SQL"
-        },
-        {
-          "command": "sql-y.rewrite-sql-for-me",
-          "when": "editorLangId == SQL"
         }
       ],
       "editor/title": [
         {
           "command": "sql-y.write-sql-for-me",
           "group": "navigation",
-          "when": "editorTextFocus",
-          "alt": "sql-y.rewrite-sql-for-me"
+          "when": "editorTextFocus"
         }
       ]
     },
@@ -79,6 +71,7 @@
       "sqlYCopilotViewContainer": [
         {
           "id": "sqlYCopilotView",
+          "type": "webview",
           "name": "SQL-Y Copilot"
         }
       ]

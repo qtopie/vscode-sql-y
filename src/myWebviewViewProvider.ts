@@ -16,7 +16,7 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = getWebviewContent();
 
-    // Handle messages from the webview
+    // 处理来自 Webview 的消息
     webviewView.webview.onDidReceiveMessage(async (message) => {
       if (message.command === 'sendMessage') {
         const userRequest = { message: message.text };
@@ -38,7 +38,9 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  // A public method to send messages to the view
   public addMessageToWebview(message: string): void {
+    // Use optional chaining to safely post a message only if the view exists
     this._view?.webview.postMessage({ command: 'addResponse', text: message });
   }
 }
