@@ -22,7 +22,10 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
-			const uri = vscode.Uri.parse(`${MarkdownContentProvider.scheme}:preview.md`);
+			const document = editor.document;
+			const textContent = document.getText;
+
+			const uri = vscode.Uri.parse(`${MarkdownContentProvider.scheme}:copilot.md`);
 			const doc = await vscode.workspace.openTextDocument(uri);
 			const provider = new MarkdownContentProvider();
 
@@ -32,17 +35,17 @@ export function activate(context: vscode.ExtensionContext) {
 			await vscode.commands.executeCommand('markdown.showPreview');
 
 			// Stream the response and update the Markdown content
-			const userRequest = { message: 'Generate SQL query' };
+			const userRequest = { message: textContent };
 			const call = client.Chat(userRequest);
 
 			call.on('data', (response: { content: string }) => {
 				const currentContent = provider.provideTextDocumentContent(uri);
-				const updatedContent = `${currentContent}\n${response.content}`;
+				const updatedContent = `${currentContent}${response.content}`;
 				provider.setContent(uri, updatedContent); // Update the Markdown content
 			});
 
 			call.on('end', () => {
-				vscode.window.showInformationMessage('Streaming completed.');
+				vscode.window.showInformationMessage('SQL-Y copilot completed.');
 			});
 
 			call.on('error', (error: any) => {
