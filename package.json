@@ -40,6 +40,10 @@
         "command": "sql-y.rewrite-sql-for-me",
         "icon": "$(lightbulb)",
         "title": "SQL-Y: ReWrite SQL"
+      },
+      {
+        "command": "sql-y.openChat",
+        "title": "SQL-Y: Open Chat"
       }
     ],
     "menus": {
@@ -59,6 +63,23 @@
           "group": "navigation",
           "when": "editorTextFocus",
           "alt": "sql-y.rewrite-sql-for-me"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sqlYCopilotViewContainer",
+          "title": "SQL-Y Copilot",
+          "icon": "resources/sql-y-icon.svg" 
+        }
+      ]
+    },
+    "views": {
+      "sqlYCopilotViewContainer": [
+        {
+          "id": "sqlYCopilotView",
+          "name": "SQL-Y Copilot"
         }
       ]
     }

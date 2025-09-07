@@ -3,10 +3,17 @@
 import * as vscode from 'vscode';
 import { MarkdownContentProvider } from './markdownContentProvider';
 import { client } from './daprClient';
+import { MyWebviewViewProvider } from './myWebviewViewProvider';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	// Register the webview view provider
+	const webviewViewProvider = new MyWebviewViewProvider();
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(MyWebviewViewProvider.viewType, webviewViewProvider)
+	);
+
 	const provider = new MarkdownContentProvider();
 	context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(MarkdownContentProvider.scheme, provider));
 
@@ -55,8 +62,6 @@ export function activate(context: vscode.ExtensionContext) {
 		} else {
 			vscode.window.showInformationMessage('No active editor found.');
 		}
-
-		vscode.window.showInformationMessage('Please teach me how???');
 	});
 	context.subscriptions.push(disposable);
 
@@ -67,9 +72,6 @@ export function activate(context: vscode.ExtensionContext) {
 		if (editor) {
 			const uri = vscode.Uri.parse(`${MarkdownContentProvider.scheme}:preview.md`);
 
-			// Store the content so the provider can retrieve it.
-			// contentMap.set(uri.toString(), textContent);
-
 			// This command opens the virtual document in a new editor pane.
 			const doc = await vscode.workspace.openTextDocument(uri);
 			await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside });
@@ -79,11 +81,15 @@ export function activate(context: vscode.ExtensionContext) {
 		} else {
 			vscode.window.showInformationMessage('No active editor found.');
 		}
-
-		vscode.window.showInformationMessage('Please teach me how???');
 	});
 
 	context.subscriptions.push(rewriteDisposable);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sql-y.openChat', () => {
+			vscode.commands.executeCommand('workbench.view.extension.sqlYCopilotViewContainer'); // Focus the view container
+		})
+	);
 }
 
 // This method is called when your extension is deactivated
