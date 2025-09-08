@@ -7,14 +7,19 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
 
   private _view?: vscode.WebviewView;
 
+  constructor(private readonly _extensionUri: vscode.Uri){ }
+
   resolveWebviewView(webviewView: vscode.WebviewView): void {
     this._view = webviewView;
 
     webviewView.webview.options = {
       enableScripts: true, // Enable JavaScript in the webview
+      localResourceRoots: [
+        this._extensionUri
+      ]
     };
 
-    webviewView.webview.html = getWebviewContent();
+    webviewView.webview.html = getWebviewContent(webviewView.webview, this._extensionUri);
 
     // 处理来自 Webview 的消息
     webviewView.webview.onDidReceiveMessage(async (message) => {

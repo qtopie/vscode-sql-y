@@ -9,7 +9,7 @@ import { client } from './daprClient';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	// Register the webview view provider
-	const webviewViewProvider = new MyWebviewViewProvider();
+	const webviewViewProvider = new MyWebviewViewProvider(context.extensionUri);
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(MyWebviewViewProvider.viewType, webviewViewProvider)
