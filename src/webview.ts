@@ -24,7 +24,7 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
       <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
       </script>
-      <script nonce="${scriptUri}"></script>
+      <script nonce="${nonce}" src="${scriptUri}"></script>
     </body>
     </html>
   `;
