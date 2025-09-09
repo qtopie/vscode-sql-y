@@ -1,79 +1,130 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+// import { Mdx } from "@m2d/react-markdown/server";
 
+// Define the structure for the VS Code API, message object, and component props
 interface VSCodeAPI {
   postMessage(message: any): void;
-  getState(): any;
-  setState(state: any): void;
 }
 
 interface AppProps {
   vscode: VSCodeAPI;
 }
 
+interface Message {
+  content: string;
+  isUser: boolean;
+}
+
 const App: React.FC<AppProps> = ({ vscode }) => {
-  const [inputText, setInputText] = React.useState('');
-  const [displayText, setDisplayText] = React.useState('Loading...');
+  const [inputText, setInputText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const appendMoreText = (text: string) => {
-    setDisplayText(prevText => prevText + text);
-  }
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
-  const appendMessage = (text: string, isUser: boolean) => {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message';
-    messageDiv.classList.add(isUser ? 'user' : 'bot');
-    messageDiv.innerText = text;
-
-    const messagesDiv = document.getElementById('messages');
-    if (messagesDiv) {
-      messagesDiv.appendChild(messageDiv);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = () => {
-    if (inputText.trim()) {
-      appendMessage(inputText, true);
-      
-      vscode.postMessage({ command: 'sendMessage', text: inputText });
-      setInputText('');
-    }
-  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-  React.useEffect(() => {
+  // Refactored message handling logic
+  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const message = event.data;
+
+      // Real-time streaming for bot responses
       if (message?.command === 'addResponse') {
-        appendMessage(message.text, false);
+        setMessages((prevMessages) => {
+          // If the last message is from the bot, append the new text
+          const lastMessage = prevMessages[prevMessages.length - 1];
+          if (lastMessage && !lastMessage.isUser) {
+            const updatedMessages = [...prevMessages];
+            updatedMessages[updatedMessages.length - 1] = {
+              ...lastMessage,
+              content: lastMessage.content + message.text,
+            };
+            return updatedMessages;
+          }
+          // Otherwise, start a new bot message for the real-time stream
+          return [
+            ...prevMessages,
+            { content: message.text, isUser: false },
+          ];
+        });
       }
-    }
+
+      // Finalize the bot message and apply the message limit
+      if (message?.command === 'endResponse') {
+        setMessages((prevMessages) => {
+          // Add the final message to the array and enforce the limit
+          // The last message is already being updated by `addResponse`
+          // We can use this command to signal the end of the streaming
+          // and apply the message limit.
+          const updatedMessages = [...prevMessages].slice(-20);
+          return updatedMessages;
+        });
+      }
+    };
 
     window.addEventListener('message', handleMessage);
 
     return () => {
       window.removeEventListener('message', handleMessage);
-    }
+    };
   }, []);
+
+  const handleSendMessage = () => {
+    if (inputText.trim()) {
+      const newUserMessage: Message = {
+        content: inputText,
+        isUser: true,
+      };
+      setMessages((prevMessages) => {
+        // Enforce the message limit on the user's message as well
+        const updatedMessages = [...prevMessages, newUserMessage].slice(-20);
+        return updatedMessages;
+      });
+
+      vscode.postMessage({ command: 'sendMessage', text: inputText });
+      setInputText('');
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
 
   return (
     <div id="container">
-      <div id='messages'></div>
-      <div id='inputArea'>
-        <input 
-          id='inputText'
-          type='text'
+      <div id="messages">
+        {messages.map((msg, index) => (
+          <div key={index} className={`message ${msg.isUser ? 'user' : 'bot'}`}>
+            {msg.content}
+            {/* <Mdx>{msg.content}</Mdx> */}
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div id="inputArea">
+        <input
+          id="inputText"
+          type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder='Type a message...'
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message..."
         />
-        <button id='sendButton' onClick={handleSendMessage}>
+        <button id="sendButton" onClick={handleSendMessage}>
           Send
         </button>
       </div>
-
     </div>
-
-);
-}
+  );
+};
 
 export default App;
