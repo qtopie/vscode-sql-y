@@ -24,46 +24,73 @@ const esbuildProblemMatcherPlugin = {
 	},
 };
 
+// ⚙️ 1. Configuration for the extension backend (CommonJS)
+const extensionConfig = {
+	entryPoints: ['src/extension.ts'],
+	outfile: 'dist/extension.js',
+	bundle: true,
+	format: 'cjs',
+	platform: 'node',
+	external: ['vscode'],
+	minify: production,
+	sourcemap: !production,
+	logLevel: 'silent',
+	plugins: [
+		esbuildProblemMatcherPlugin,
+		copy({ // Copy plugin is only needed once
+			assets: [
+				{
+					from: ['./src/proto/copilot.proto'],
+					to: ['./proto/copilot.proto']
+				}
+			]
+		})
+	],
+};
+
+
+// ⚙️ 2. Configuration for the React webview frontend (ES Module)
+const webviewConfig = {
+	entryPoints: ['src/views/index.tsx'],
+	outfile: 'dist/views/index.js',
+	bundle: true,
+	format: 'esm', // ✨ KEY CHANGE: Use ES Module format
+	platform: 'browser', // ✨ KEY CHANGE: Target the browser environment
+	minify: production,
+	sourcemap: !production,
+	logLevel: 'silent',
+	define: {
+		'process.env.NODE_ENV': production ? '"production"' : '"development"',
+	},
+	plugins: [esbuildProblemMatcherPlugin],
+};
+
+// ⚙️ 3. Main function to run both builds
 async function main() {
-	const ctx = await esbuild.context({
-		entryPoints: [
-			{ out: 'extension', in: 'src/extension.ts' },
-			{ out: 'views/index', in: 'src/views/index.tsx' }
-		],
-		bundle: true,
-		format: 'cjs',
-		minify: production,
-		sourcemap: !production,
-		sourcesContent: false,
-		platform: 'node',
-		outdir: 'dist',
-		external: ['vscode'],
-		logLevel: 'silent',
-		define: {
-			'process.env.NODE_ENV': production ? '"production"' : '"development"',
-		},
-		plugins: [
-			/* add to the end of plugins array */
-			esbuildProblemMatcherPlugin,
-			copy({
-				assets: [
-					{
-						from: ['./src/proto/copilot.proto'],
-						to: ['./proto/copilot.proto']
-					}
-				]
-			})
-		],
-	});
-	if (watch) {
-		await ctx.watch();
-	} else {
-		await ctx.rebuild();
-		await ctx.dispose();
+	try {
+		const extensionCtx = await esbuild.context(extensionConfig);
+		const webviewCtx = await esbuild.context(webviewConfig);
+
+		if (watch) {
+			console.log('Watching for changes...');
+			await extensionCtx.watch();
+			await webviewCtx.watch();
+		} else {
+			console.log('Building for production...');
+			await Promise.all([
+				extensionCtx.rebuild(),
+				webviewCtx.rebuild()
+			]);
+			await Promise.all([
+				extensionCtx.dispose(),
+				webviewCtx.dispose()
+			]);
+			console.log('Build complete!');
+		}
+	} catch (e) {
+		console.error(e);
+		process.exit(1);
 	}
 }
 
-main().catch(e => {
-	console.error(e);
-	process.exit(1);
-});
+main();

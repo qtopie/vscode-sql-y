@@ -1,5 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-// import { Mdx } from "@m2d/react-markdown/server";
+import React, { useEffect, useRef, useState } from 'react';
+import Markdown from 'markdown-to-jsx';
+import {
+  Card,
+  CardFooter,
+  CardHeader,
+  CardPreview,
+} from "@fluentui/react-components";
 
 // Define the structure for the VS Code API, message object, and component props
 interface VSCodeAPI {
@@ -103,8 +109,23 @@ const App: React.FC<AppProps> = ({ vscode }) => {
       <div id="messages">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.isUser ? 'user' : 'bot'}`}>
-            {msg.content}
-            {/* <Mdx>{msg.content}</Mdx> */}
+            <Card>
+              <CardHeader>
+                header
+              </CardHeader>
+              <CardPreview>
+                {/* Content for the card's main visual, e.g., an image */}
+              </CardPreview>
+              {/* Main content of the card */}
+              {msg.isUser ? (
+                msg.content
+              ) : (
+                <Markdown>{msg.content}</Markdown>
+              )}
+              <CardFooter>
+                {/* Content for the card footer, e.g., actions, buttons */}
+              </CardFooter>
+            </Card>
           </div>
         ))}
         <div ref={messagesEndRef} />
