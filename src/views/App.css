@@ -1,0 +1,55 @@
+#messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* Adds space between messages */
+}
+
+.message-container {
+  display: flex;
+  align-items: flex-start;
+  /* Aligns items to the top */
+  max-width: 80%;
+  /* Prevents messages from taking up the full width */
+}
+
+/* Align user messages to the right */
+.user-container {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+  /* Reverses the order of the icon and card */
+}
+
+/* Align bot messages to the left */
+.bot-container {
+  align-self: flex-start;
+}
+
+.message-icon {
+  font-size: 24px;
+  margin: 0 10px;
+
+  /* Space between icon and message card */
+  /* For bot icon, adjust margin to be on the right side */
+  .user-container & {
+    margin: 0 0 0 10px;
+  }
+}
+
+/* Styling for the message bubble itself */
+.message {
+  padding: 10px 15px;
+  border-radius: 20px;
+}
+
+.user-message {
+  background-color: #0078d4;
+  /* A nice blue for the user */
+  color: white;
+}
+
+.bot-message {
+  background-color: #e5e5ea;
+  /* A light grey for the bot */
+  color: black;
+}

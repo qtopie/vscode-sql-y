@@ -1,11 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Markdown from 'markdown-to-jsx';
 import {
   Card,
   CardFooter,
   CardHeader,
   CardPreview,
 } from "@fluentui/react-components";
+import { BotRegular, PersonVoiceRegular } from '@fluentui/react-icons';
+import Markdown from 'markdown-to-jsx';
+import React, { useEffect, useRef, useState } from 'react';
+import './App.css';
 
 // Define the structure for the VS Code API, message object, and component props
 interface VSCodeAPI {
@@ -108,29 +110,34 @@ const App: React.FC<AppProps> = ({ vscode }) => {
     <div id="container">
       <div id="messages">
         {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.isUser ? 'user' : 'bot'}`}>
-            <Card>
+          <div
+            key={index}
+            className={`message-container ${msg.isUser ? 'user-container' : 'bot-container'}`}
+          >
+            <div className="message-icon">
+              {msg.isUser ? <PersonVoiceRegular /> : <BotRegular />}
+
+            </div>
+            <Card className={`message ${msg.isUser ? 'user-message' : 'bot-message'}`}>
               <CardHeader>
-                header
+                <p>{msg.isUser ? 'You' : 'Bot'}</p>
               </CardHeader>
               <CardPreview>
-                {/* Content for the card's main visual, e.g., an image */}
+                {/* Optional: Add a preview image here */}
               </CardPreview>
-              {/* Main content of the card */}
               {msg.isUser ? (
-                msg.content
+                <p>{msg.content}</p>
               ) : (
                 <Markdown>{msg.content}</Markdown>
               )}
               <CardFooter>
-                {/* Content for the card footer, e.g., actions, buttons */}
+                {/* Optional: Add footer content here */}
               </CardFooter>
             </Card>
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
-
       <div id="inputArea">
         <input
           id="inputText"

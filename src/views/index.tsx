@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import React from 'react';
-import App from "./app";
+import App from "./App";
 import { FluentProvider, webLightTheme } from '@fluentui/react-components';
 
 declare const vscode: any;
