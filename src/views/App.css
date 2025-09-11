@@ -53,3 +53,11 @@
   /* A light grey for the bot */
   color: black;
 }
+
+#input-Area {
+  position: fixed;
+  bottom: 0;
+  /* Aligns the child to the bottom of the parent */
+  background-color: lightblue;
+  padding: 10px;
+}

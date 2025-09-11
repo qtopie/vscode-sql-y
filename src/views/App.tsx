@@ -3,6 +3,7 @@ import {
   CardFooter,
   CardHeader,
   CardPreview,
+  Input,
 } from "@fluentui/react-components";
 import { BotRegular, PersonVoiceRegular } from '@fluentui/react-icons';
 import Markdown from 'markdown-to-jsx';
@@ -19,11 +20,15 @@ interface AppProps {
 }
 
 interface Message {
+  sessionId?: string;
+  seq?: number;
   content: string;
   isUser: boolean;
 }
 
 const App: React.FC<AppProps> = ({ vscode }) => {
+  const [sessionId, setSessionId] = useState(null);
+  const [currentMsgId, setCurrentMsgId] = useState(0);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -37,7 +42,7 @@ const App: React.FC<AppProps> = ({ vscode }) => {
     scrollToBottom();
   }, [messages]);
 
-  // Refactored message handling logic
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const message = event.data;
@@ -139,13 +144,14 @@ const App: React.FC<AppProps> = ({ vscode }) => {
         <div ref={messagesEndRef} />
       </div>
       <div id="inputArea">
-        <input
+        <Input
           id="inputText"
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
+          appearance="outline"
         />
         <button id="sendButton" onClick={handleSendMessage}>
           Send

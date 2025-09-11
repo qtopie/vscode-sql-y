@@ -28,7 +28,7 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
         const call = client.Chat(userRequest);
 
         call.on('data', (response: { content: string }) => {
-          this._view?.webview.postMessage({ command: 'addResponse', text: response.content });
+          this._view?.webview.postMessage({ command: 'addResponse', text: response.content, seq: 1 });
         });
 
         call.on('error', (error: any) => {
