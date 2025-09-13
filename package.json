@@ -20,7 +20,8 @@
       {
         "id": "SQL",
         "aliases": [
-          "SQL"
+          "SQL",
+          "sql"
         ],
         "extensions": [
           ".sql"
