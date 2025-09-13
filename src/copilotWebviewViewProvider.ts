@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { client } from './daprClient';
 import { getWebviewContent } from './webview';
 
-export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
+export class SqlYCopilotWebviewViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'sqlYCopilotView';
 
   private _view?: vscode.WebviewView;

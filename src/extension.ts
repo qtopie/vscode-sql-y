@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { MyWebviewViewProvider } from './myWebviewViewProvider';
+import { SqlYCopilotWebviewViewProvider } from './copilotWebviewViewProvider';
 import { client } from './daprClient';
 
 
@@ -9,10 +9,10 @@ import { client } from './daprClient';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	// Register the webview view provider
-	const webviewViewProvider = new MyWebviewViewProvider(context.extensionUri);
+	const webviewViewProvider = new SqlYCopilotWebviewViewProvider(context.extensionUri);
 
 	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(MyWebviewViewProvider.viewType, webviewViewProvider)
+		vscode.window.registerWebviewViewProvider(SqlYCopilotWebviewViewProvider.viewType, webviewViewProvider)
 	);
 
 	// Command to send data to the webview
