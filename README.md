@@ -1,3 +1,3 @@
 # sql-y
 
-![SQL-Y](resources/sql-y-icon.svg)
+![SQL-Y](resources/sql-y-icon.png)
