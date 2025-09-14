@@ -4,6 +4,7 @@
   "description": "A good helper to write sql.",
   "version": "0.0.2",
   "publisher": "qtopie",
+  "icon": "resources/sql-y-icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/qtopie/vscode-sql-y"
