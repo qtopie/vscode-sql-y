@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { client } from './daprClient';
+import { client } from './grpcClient';
 import { getWebviewContent } from './webview';
 
 export class SqlYCopilotWebviewViewProvider implements vscode.WebviewViewProvider {

@@ -75,7 +75,8 @@
         {
           "id": "sqlYCopilotView",
           "type": "webview",
-          "name": "SQL-Y Copilot"
+          "name": "SQL-Y Copilot",
+          "icon": "resources/sql-y-icon.svg"
         }
       ]
     }

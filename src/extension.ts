@@ -1,42 +1,71 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { SqlYCopilotWebviewViewProvider } from './copilotWebviewViewProvider';
-import { client } from './daprClient';
+import { client } from './grpcClient';
 
-function isEmptyOrWhitespace(str: string) {
-	// Check if the string is null, undefined, or an empty string after trimming whitespace
+/**
+ * A simple debounce function to limit how often an async function is called.
+ * This version correctly handles promise-based functions, ensuring that only
+ * the final, "stopped typing" event triggers the function call.
+ * @param func The async function to debounce.
+ * @param delay The delay in milliseconds.
+ */
+function debounce<T extends (...args: any[]) => Promise<any>>(func: T, delay: number): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>> | undefined> {
+	let timeoutId: NodeJS.Timeout | undefined;
+	let latestPromise: Promise<Awaited<ReturnType<T>> | undefined> | undefined;
+	let latestResolve: ((value: Awaited<ReturnType<T>> | undefined) => void) | undefined;
+
+	return function (...args: Parameters<T>): Promise<Awaited<ReturnType<T>> | undefined> {
+		// Clear any existing timeout to reset the timer on every new keystroke
+		clearTimeout(timeoutId);
+
+		// If there is no pending promise, create one
+		if (!latestPromise) {
+			latestPromise = new Promise(resolve => {
+				latestResolve = resolve;
+			});
+		}
+
+		// Set a new timeout
+		timeoutId = setTimeout(async () => {
+			try {
+				const result = await func(...args);
+				if (latestResolve) {
+					latestResolve(result);
+				}
+			} catch (error) {
+				console.error('Debounced function failed:', error);
+				if (latestResolve) {
+					latestResolve(undefined);
+				}
+			} finally {
+				// Clear the promise and resolve function after the debounced call is complete
+				latestPromise = undefined;
+				latestResolve = undefined;
+			}
+		}, delay);
+
+		return latestPromise;
+	};
+}
+
+
+function isEmptyOrWhitespace(str: string | null | undefined): boolean {
 	return str === null || str === undefined || str.trim().length === 0;
 }
 
 // This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 
 	if (workspaceFolders && workspaceFolders.length > 0) {
-		// Access the first workspace folder (often the primary one in single-folder workspaces)
 		const firstFolder = workspaceFolders[0];
-
-		// Get the URI of the folder
 		const folderUri = firstFolder.uri;
-
-		// Get the file system path of the folder
 		const folderPath = folderUri.fsPath;
-
-		// Get the name of the folder
 		const folderName = firstFolder.name;
 
 		console.log(`First workspace folder URI: ${folderUri}`);
 		console.log(`First workspace folder path: ${folderPath}`);
 		console.log(`First workspace folder name: ${folderName}`);
-
-		// Iterate through all workspace folders in a multi-root workspace
-		workspaceFolders.forEach((folder, index) => {
-			console.log(`Folder ${index + 1} URI: ${folder.uri}`);
-			console.log(`Folder ${index + 1} path: ${folder.uri.fsPath}`);
-			console.log(`Folder ${index + 1} name: ${folder.name}`);
-		});
 	} else {
 		console.log('No workspace folders found.');
 	}
@@ -47,80 +76,97 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.registerWebviewViewProvider(SqlYCopilotWebviewViewProvider.viewType, webviewViewProvider)
 	);
 
-	// Register an inline completion item provider for 'sql' language.
+	// The function that will be debounced
+	const provideInlineCompletions = async (
+		document: vscode.TextDocument,
+		position: vscode.Position,
+	): Promise<vscode.InlineCompletionItem[] | null | undefined> => {
+
+		const linePrefix = document.lineAt(position).text.substring(0, position.character);
+		const lineSuffix = document.lineAt(position).text.substring(position.character);
+
+		// Only proceed if the line prefix is not empty
+		if (isEmptyOrWhitespace(linePrefix)) {
+			return [];
+		}
+
+		// Provide a simple 'select' suggestion immediately without an API call
+		if (linePrefix.trim().toLowerCase().endsWith('select')) {
+			const selectAll = new vscode.InlineCompletionItem(' * FROM ');
+			selectAll.range = new vscode.Range(position, position);
+			return [selectAll];
+		}
+
+		const linesAbove: string[] = [];
+		const linesBelow: string[] = [];
+
+		// Get context from lines above
+		for (let i = Math.max(0, position.line - 1000); i < position.line; i++) {
+			const lineText = document.lineAt(i).text;
+			if (isEmptyOrWhitespace(lineText)) {
+				// Stop at the first empty or whitespace-only line
+				break;
+			}
+			linesAbove.push(lineText);
+		}
+		// Get context from lines below
+		if (!isEmptyOrWhitespace(lineSuffix)) {
+			linesAbove.push(lineSuffix);
+		}
+		for (let i = position.line + 1; i < Math.min(document.lineCount, position.line + 1000); i++) {
+			const lineText = document.lineAt(i).text;
+			if (isEmptyOrWhitespace(lineText)) {
+				// Stop at the first empty or whitespace-only line
+				break;
+			}
+			linesBelow.push(lineText);
+		}
+
+		const userRequest = {
+			message: linePrefix,
+			frontPart: linesAbove.join("\n"),
+			backPart: linesBelow.join("\n"),
+			filename: document.fileName
+		};
+
+		let completionToken: string = '';
+
+		// Use an async/await approach for the gRPC call
+		try {
+			const response = await new Promise<{ content: string }>((resolve, reject) => {
+				client.AutoComplete(userRequest, (error: any, response: { content: string }) => {
+					if (error) {
+						return reject(error);
+					}
+					resolve(response);
+				});
+			});
+			completionToken = response.content;
+		} catch (error) {
+			console.error('Error in AutoComplete:', error);
+			// Return an empty array on error to prevent bad suggestions
+			return [];
+		}
+
+		return completionToken === '' ? [] : [
+			new vscode.InlineCompletionItem(completionToken, new vscode.Range(position, position))
+		];
+	};
+
+	// Create a debounced version of the provider function with a 100ms delay
+	const debouncedProvider = debounce(provideInlineCompletions, 100);
+
+	// Register the inline completion item provider for 'sql' language.
 	const codeCompletionProvider = vscode.languages.registerInlineCompletionItemProvider(
 		'SQL',
 		{
-			// The provideInlineCompletionItems method is called to provide inline suggestions.
-			async provideInlineCompletionItems(
-				document: vscode.TextDocument,
-				position: vscode.Position,
-			) {
-
-				const linesAbove: string[] = [];
-				const linesBelow: string[] = [];
-
-				for (let i = Math.max(0, position.line - 1000); i < position.line; i++) {
-					const lineText = document.lineAt(i).text;
-					if (isEmptyOrWhitespace(lineText)) {
-						break;
-					}
-
-					linesAbove.push(lineText);
-				}
-
-				for (let i = 0; i < Math.min(document.lineCount, position.line + 1000); i++) {
-					const lineText = document.lineAt(i).text;
-					if (isEmptyOrWhitespace(lineText)) {
-						break;
-					}
-
-					linesBelow.push(lineText);
-				}
-
-				// Get the current line text up to the cursor position.
-				const linePrefix = document.lineAt(position).text.substring(0, position.character);
-
-				// Check if the user is typing "SELECT" to provide a suggestion.
-				if (linePrefix.trim().toLowerCase().endsWith('select')) {
-					// Create a new InlineCompletionItem
-					const selectAll = new vscode.InlineCompletionItem(
-						' * FROM '
-					);
-
-					// The range defines the text that will be replaced by the suggestion.
-					// In this case, we are not replacing anything, just inserting.
-					selectAll.range = new vscode.Range(position, position);
-
-					// Return the array of inline completion items.
-					return [selectAll];
-				}
-
-				const userRequest = {
-					message: linePrefix,
-					frontPart: linesAbove.join("\n"),
-					backPart: linesBelow.join("\n"),
-					filename: document.fileName
-				};
-
-				let completionToken: string = '';
-				client.AutoComplete(userRequest, (error: any, response: { content: string }) => {
-					if (error) {
-						console.error('Error:', error);
-					} else {
-						completionToken = response.content;
-					}
-				});
-
-				return completionToken === '' ? [] : [
-					new vscode.InlineCompletionItem(completionToken)
-				];
+			provideInlineCompletionItems: (document, position) => {
+				return debouncedProvider(document, position);
 			}
 		}
 	);
+
 	context.subscriptions.push(codeCompletionProvider);
-
-
 
 	// Command to send data to the webview
 	const disposable = vscode.commands.registerCommand('sql-y.write-sql-for-me', async () => {
@@ -136,7 +182,6 @@ export function activate(context: vscode.ExtensionContext) {
 			const call = client.Chat(userRequest);
 
 			call.on('data', (response: { content: string }) => {
-				// 确保 Webview View 打开并发送消息
 				webviewViewProvider.addMessageToWebview(response.content);
 			});
 		} else {
@@ -145,11 +190,10 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(disposable);
 
-
 	// Command to open the webview view
 	context.subscriptions.push(
 		vscode.commands.registerCommand('sql-y.openChat', () => {
-			vscode.commands.executeCommand('workbench.view.extension.sqlYCopilotViewContainer'); // Focus the view container
+			vscode.commands.executeCommand('workbench.view.extension.sqlYCopilotViewContainer');
 		})
 	);
 }
