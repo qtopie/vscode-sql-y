@@ -179,16 +179,42 @@ export function activate(context: vscode.ExtensionContext) {
 				message: textContent,
 				filename: document.fileName
 			};
-			const call = client.Chat(userRequest);
 
+			// workaround for new message
+			webviewViewProvider.addRequestToWebview('write sql for me with file @' + document.fileName);
+			const call = client.Chat(userRequest);
 			call.on('data', (response: { content: string }) => {
 				webviewViewProvider.addMessageToWebview(response.content);
+			});
+			call.on('end', () => {
+				webviewViewProvider.endMessageToWebview();
+			});
+			call.on('error', (error: any) => {
+				console.error('gRPC stream error:', error);
+				webviewViewProvider.addMessageToWebview(`Error: ${error.message}`);
 			});
 		} else {
 			vscode.window.showInformationMessage('No active editor found.');
 		}
 	});
 	context.subscriptions.push(disposable);
+
+	// Command to open the webview view
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sql-y.rewrite-sql-for-me', () => {
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				const document = editor.document;
+
+				webviewViewProvider.addRequestToWebview('rewrite sql for me with file @' + document.fileName);
+				console.log('rewrititing is not implemented yet');
+				webviewViewProvider.addMessageToWebview('rewrititing is not implemented yet');
+			} else {
+				vscode.window.showInformationMessage('No active editor found.');
+			}
+
+		})
+	);
 
 	// Command to open the webview view
 	context.subscriptions.push(

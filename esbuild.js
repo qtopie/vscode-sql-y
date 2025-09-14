@@ -42,6 +42,10 @@ const extensionConfig = {
 				{
 					from: ['./src/proto/copilot.proto'],
 					to: ['./proto/copilot.proto']
+				},
+				{
+					from: ['./resources/sql-y-icon.svg'],
+					to: ['./views/icon.svg']
 				}
 			]
 		})

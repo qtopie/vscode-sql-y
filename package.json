@@ -16,7 +16,9 @@
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onLanguage:sql"
+    "onLanguage:SQL",
+    "onCommand:sql-y.write-sql-for-me",
+    "onCommand:sql-y.openChat"
   ],
   "contributes": {
     "languages": [
@@ -41,6 +43,11 @@
     "commands": [
       {
         "command": "sql-y.write-sql-for-me",
+        "icon": "$(lightbulb)",
+        "title": "SQL-Y: Write SQL"
+      },
+      {
+        "command": "sql-y.rewrite-sql-for-me",
         "icon": "$(lightbulb-autofix)",
         "title": "SQL-Y: Write SQL"
       },
@@ -60,6 +67,7 @@
         {
           "command": "sql-y.write-sql-for-me",
           "group": "navigation",
+          "alt": "sql-y.rewrite-sql-for-me",
           "when": "editorTextFocus"
         }
       ]
@@ -69,7 +77,7 @@
         {
           "id": "sqlYCopilotViewContainer",
           "title": "SQL-Y Copilot",
-          "icon": "resources/sql-y-icon.svg"
+          "icon": "$(lightbulb)"
         }
       ]
     },
@@ -79,7 +87,7 @@
           "id": "sqlYCopilotView",
           "type": "webview",
           "name": "SQL-Y Copilot",
-          "icon": "resources/sql-y-icon.svg"
+          "icon": "$(lightbulb)"
         }
       ]
     }
@@ -118,6 +126,7 @@
   "dependencies": {
     "@fluentui/react-components": "^9.66.1",
     "@fluentui/react-icons": "^2.0.309",
+    "lucide-react": "^0.515.0",
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.8.0",
     "markdown-to-jsx": "^7.7.13",

@@ -8,6 +8,13 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
     vscode.Uri.joinPath(extensionUri, viewPath, 'index.js')
   );
 
+  const styleUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(extensionUri, viewPath, 'index.css')
+  );
+  const codiconsUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(extensionUri, viewPath, 'icon.svg')
+  );
+
   const nonce = getNonce();
 
   return `
@@ -16,6 +23,9 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webview.cspSource}; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
+      <link href="${styleUri}" rel="stylesheet" />
+      <link href="${codiconsUri}" rel="stylesheet">
       <title>SQL-Y Chat</title>
     </head>
     <body>

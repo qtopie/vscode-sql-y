@@ -8,8 +8,6 @@ declare const vscode: any;
 const container = document.getElementById("root");
 const root = createRoot(container!);
 
-
-
 root.render(
   <FluentProvider theme={webLightTheme}>
     <App vscode={vscode} />

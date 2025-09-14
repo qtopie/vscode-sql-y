@@ -1,8 +1,12 @@
+.container {
+  width: 100%;
+}
+
 #messages {
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  /* Adds space between messages */
 }
 
 .message-container {
@@ -54,10 +58,8 @@
   color: black;
 }
 
-#input-Area {
+.input-box {
   position: fixed;
   bottom: 0;
-  /* Aligns the child to the bottom of the parent */
-  background-color: lightblue;
   padding: 10px;
 }

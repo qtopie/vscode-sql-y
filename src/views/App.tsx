@@ -1,11 +1,13 @@
 import {
+  Button,
   Card,
   CardFooter,
   CardHeader,
   CardPreview,
-  Input,
+  Textarea
 } from "@fluentui/react-components";
 import { BotRegular, PersonVoiceRegular } from '@fluentui/react-icons';
+import { SendHorizontal } from 'lucide-react';
 import Markdown from 'markdown-to-jsx';
 import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
@@ -21,14 +23,14 @@ interface AppProps {
 
 interface Message {
   sessionId?: string;
-  seq?: number;
+  seq: number;
   content: string;
   isUser: boolean;
 }
 
 const App: React.FC<AppProps> = ({ vscode }) => {
   const [sessionId, setSessionId] = useState(null);
-  const [currentMsgId, setCurrentMsgId] = useState(0);
+  const [currentSeq, setCurrentSeq] = useState(1);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -47,12 +49,27 @@ const App: React.FC<AppProps> = ({ vscode }) => {
     const handleMessage = (event: MessageEvent) => {
       const message = event.data;
 
+      // Finalize the bot message and apply the message limit
+      if (message?.command === 'sendMessage') {
+        setMessages((prevMessages) => {
+          // Add the final message to the array and enforce the limit
+          // The last message is already being updated by `addResponse`
+          // We can use this command to signal the end of the streaming
+          // and apply the message limit.
+          const updatedMessages = [...prevMessages].slice(-20);
+          return [
+            ...updatedMessages,
+            { content: message.text, isUser: true, seq: 0 },
+          ];
+        });
+      }
+
       // Real-time streaming for bot responses
       if (message?.command === 'addResponse') {
         setMessages((prevMessages) => {
           // If the last message is from the bot, append the new text
           const lastMessage = prevMessages[prevMessages.length - 1];
-          if (lastMessage && !lastMessage.isUser) {
+          if (lastMessage && !lastMessage.isUser && lastMessage.seq <= message.seq) {
             const updatedMessages = [...prevMessages];
             updatedMessages[updatedMessages.length - 1] = {
               ...lastMessage,
@@ -63,20 +80,23 @@ const App: React.FC<AppProps> = ({ vscode }) => {
           // Otherwise, start a new bot message for the real-time stream
           return [
             ...prevMessages,
-            { content: message.text, isUser: false },
+            { content: message.text, isUser: false, seq: currentSeq },
           ];
         });
       }
 
       // Finalize the bot message and apply the message limit
-      if (message?.command === 'endResponse') {
+      if (message?.command === 'END_OF_STREAM') {
         setMessages((prevMessages) => {
           // Add the final message to the array and enforce the limit
           // The last message is already being updated by `addResponse`
           // We can use this command to signal the end of the streaming
           // and apply the message limit.
           const updatedMessages = [...prevMessages].slice(-20);
-          return updatedMessages;
+          return [
+            ...updatedMessages,
+            { content: '', isUser: false, seq: Number.MAX_SAFE_INTEGER },
+          ];
         });
       }
     };
@@ -93,6 +113,7 @@ const App: React.FC<AppProps> = ({ vscode }) => {
       const newUserMessage: Message = {
         content: inputText,
         isUser: true,
+        seq: currentSeq + 1
       };
       setMessages((prevMessages) => {
         // Enforce the message limit on the user's message as well
@@ -105,57 +126,66 @@ const App: React.FC<AppProps> = ({ vscode }) => {
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      handleSendMessage();
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Check if the Enter key was pressed
+    if (e.key === 'Enter') {
+      // Prevent the default behavior (creating a new line)
+      e.preventDefault();
+
+      // If the Shift key is also pressed, insert a new line character
+      if (e.shiftKey) {
+        setInputText(prevText => prevText + '\n');
+      } else {
+        // Otherwise, send the message
+        handleSendMessage();
+      }
     }
   };
 
   return (
     <div id="container">
       <div id="messages">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`message-container ${msg.isUser ? 'user-container' : 'bot-container'}`}
-          >
-            <div className="message-icon">
-              {msg.isUser ? <PersonVoiceRegular /> : <BotRegular />}
+        {messages.filter(e => e.content.trim())
+          .map((msg, index) => (
+            <div
+              key={index}
+              className={`message-container ${msg.isUser ? 'user-container' : 'bot-container'}`}
+            >
+              <div className="message-icon">
+                {msg.isUser ? <PersonVoiceRegular /> : <BotRegular />}
 
+              </div>
+              <Card className={`message ${msg.isUser ? 'user-message' : 'bot-message'}`}>
+                <CardHeader>
+                  <p>{msg.isUser ? 'You' : 'Bot'}</p>
+                </CardHeader>
+                <CardPreview>
+                  {/* Optional: Add a preview image here */}
+                </CardPreview>
+                {msg.isUser ? (
+                  <p>{msg.content}</p>
+                ) : (
+                  <Markdown>{msg.content}</Markdown>
+                )}
+                <CardFooter>
+                  {/* Optional: Add footer content here */}
+                </CardFooter>
+              </Card>
             </div>
-            <Card className={`message ${msg.isUser ? 'user-message' : 'bot-message'}`}>
-              <CardHeader>
-                <p>{msg.isUser ? 'You' : 'Bot'}</p>
-              </CardHeader>
-              <CardPreview>
-                {/* Optional: Add a preview image here */}
-              </CardPreview>
-              {msg.isUser ? (
-                <p>{msg.content}</p>
-              ) : (
-                <Markdown>{msg.content}</Markdown>
-              )}
-              <CardFooter>
-                {/* Optional: Add footer content here */}
-              </CardFooter>
-            </Card>
-          </div>
-        ))}
+          ))}
         <div ref={messagesEndRef} />
       </div>
-      <div id="inputArea">
-        <Input
-          id="inputText"
-          type="text"
+      <div className="input-box">
+        <Textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          appearance="outline"
         />
-        <button id="sendButton" onClick={handleSendMessage}>
-          Send
-        </button>
+        <Button icon={<SendHorizontal />}
+          style={{ marginLeft: 'auto', justifyContent: 'flex-end' }}
+          onClick={handleSendMessage}
+        />
       </div>
     </div>
   );

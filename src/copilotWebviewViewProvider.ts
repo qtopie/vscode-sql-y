@@ -7,7 +7,7 @@ export class SqlYCopilotWebviewViewProvider implements vscode.WebviewViewProvide
 
   private _view?: vscode.WebviewView;
 
-  constructor(private readonly _extensionUri: vscode.Uri){ }
+  constructor(private readonly _extensionUri: vscode.Uri) { }
 
   resolveWebviewView(webviewView: vscode.WebviewView): void {
     this._view = webviewView;
@@ -44,8 +44,20 @@ export class SqlYCopilotWebviewViewProvider implements vscode.WebviewViewProvide
   }
 
   // A public method to send messages to the view
+  public addRequestToWebview(message: string): void {
+    // Use optional chaining to safely post a message only if the view exists
+    this._view?.webview.postMessage({ command: 'sendMessage', text: message, seq: 0, isUser: true });
+  }
+
+  // A public method to send messages to the view
   public addMessageToWebview(message: string): void {
     // Use optional chaining to safely post a message only if the view exists
-    this._view?.webview.postMessage({ command: 'addResponse', text: message });
+    this._view?.webview.postMessage({ command: 'addResponse', text: message, seq: 1 });
+  }
+
+  // A public method to send messages to the view
+  public endMessageToWebview(): void {
+    // Use optional chaining to safely post a message only if the view exists
+    this._view?.webview.postMessage({ command: 'END_OF_STREAM', seq: Number.MAX_SAFE_INTEGER });
   }
 }
