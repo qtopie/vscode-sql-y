@@ -2,7 +2,7 @@
   "name": "sql-y",
   "displayName": "SQL-Y",
   "description": "A good helper to write sql.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "qtopie",
   "icon": "resources/sql-y-icon.png",
   "repository": {
