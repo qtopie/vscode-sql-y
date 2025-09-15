@@ -11,6 +11,8 @@ import { SendHorizontal } from 'lucide-react';
 import Markdown from 'markdown-to-jsx';
 import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
+import CodeBlock from "./CodeBlock";
+import JsxFromMarkdown from "./JsxFromMarkdown";
 
 // Define the structure for the VS Code API, message object, and component props
 interface VSCodeAPI {
@@ -165,7 +167,7 @@ const App: React.FC<AppProps> = ({ vscode }) => {
                 {msg.isUser ? (
                   <p>{msg.content}</p>
                 ) : (
-                  <Markdown>{msg.content}</Markdown>
+                  <JsxFromMarkdown markdownContent={msg.content} />
                 )}
                 <CardFooter>
                   {/* Optional: Add footer content here */}

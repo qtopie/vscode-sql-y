@@ -111,7 +111,9 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/react": "^18.2.0",
+    "@types/react-copy-to-clipboard": "^5.0.7",
     "@types/react-dom": "^18.2.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@types/vscode": "^1.102.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
@@ -127,11 +129,14 @@
   "dependencies": {
     "@fluentui/react-components": "^9.66.1",
     "@fluentui/react-icons": "^2.0.309",
-    "lucide-react": "^0.515.0",
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.8.0",
+    "lucide-react": "^0.515.0",
     "markdown-to-jsx": "^7.7.13",
+    "prismjs": "^1.30.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-copy-to-clipboard": "^5.1.0",
+    "react-dom": "^18.2.0",
+    "react-syntax-highlighter": "^15.6.6"
   }
 }
