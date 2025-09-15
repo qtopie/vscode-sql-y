@@ -1,17 +1,28 @@
-import React, { useState } from 'react';
+import { Button } from '@fluentui/react-components';
+import { ClipboardCheck, Copy } from 'lucide-react';
 import Markdown from 'markdown-to-jsx';
+import React, { useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { CopyToClipboard } from 'react-copy-to-clipboard'; // Or implement native clipboard API
+import './codeblock.css';
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
 
 interface CodeBlockProps {
   className?: string;
   children: React.ReactNode;
 }
 
+interface JsxFromMarkdownProps {
+  markdownContent: string;
+}
+
+SyntaxHighlighter.registerLanguage('sql', sql);
+
 // Custom Code component
 function Code({ className, children }: CodeBlockProps) {
-  const language = className ? className.replace('lang-', '') : 'text';
+  // Extract language from className, default to 'plaintext' if not specified
+  const language = className ? className.replace('lang-', '') : 'plaintext';
   const codeContent = String(children).replace(/\n$/, '');
   const [copied, setCopied] = useState(false);
 
@@ -21,34 +32,35 @@ function Code({ className, children }: CodeBlockProps) {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <SyntaxHighlighter language={language} style={vs}>
+    <div className="code-block-container">
+      {/* Header for language name and copy button */}
+      <div className="code-block-header">
+        <span className="code-language">{language}</span>
+        <CopyToClipboard text={codeContent} onCopy={handleCopy}>
+          <Button
+            size='small'
+            appearance='subtle'
+            className="copy-button"
+            title="Copy code"
+          >
+            {copied ? <ClipboardCheck size={16} /> : <Copy size={16} />}
+          </Button>
+        </CopyToClipboard>
+      </div>
+
+      {/* Syntax highlighter component */}
+      <SyntaxHighlighter
+        language={language}
+        style={vs} // Using a dark theme that fits well with VS Code
+        customStyle={{ margin: 0, borderRadius: '0 0 5px 5px' }} // Remove default margins
+        showLineNumbers={true}
+      >
         {codeContent}
       </SyntaxHighlighter>
-      <CopyToClipboard text={codeContent} onCopy={handleCopy}>
-        <button
-          style={{
-            position: 'absolute',
-            top: '10px',
-            right: '10px',
-            padding: '5px 10px',
-            backgroundColor: '#333',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          {copied ? 'Copied!' : 'Copy'}
-        </button>
-      </CopyToClipboard>
     </div>
   );
 }
 
-interface JsxFromMarkdownProps {
-  markdownContent: string;
-}
 
 // Markdown component with custom code override
 function JsxFromMarkdown({ markdownContent }: JsxFromMarkdownProps) {
@@ -60,6 +72,12 @@ function JsxFromMarkdown({ markdownContent }: JsxFromMarkdownProps) {
             code: {
               component: Code,
             },
+            // You can add overrides for other elements like p, h1, etc. if needed
+            // p: {
+            //   props: {
+            //     className: 'markdown-paragraph',
+            //   },
+            // },
           },
         }}
       >

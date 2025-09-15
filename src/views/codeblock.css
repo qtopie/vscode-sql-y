@@ -1,0 +1,33 @@
+/* Container for the entire code block (header + code) */
+.code-block-container {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  border-radius: 6px;
+  border: 1px solid var(--vscode-focusBorder);
+  overflow: hidden;
+  /* Ensures the border-radius is applied to children */
+}
+
+/* Header bar for language and copy button */
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  /* Pushes items to opposite ends */
+  align-items: center;
+  background-color: var(--vscode-editorGroupHeader-tabsBackground);
+  padding: 4px 8px;
+}
+
+/* Styling for the language name text */
+.code-language {
+  color: var(--vscode-editor-foreground);
+  font-size: 0.8em;
+  text-transform: uppercase;
+  font-family: var(--vscode-editor-font-family);
+}
+
+/* Styling for the copy button */
+.copy-button {
+  color: var(--vscode-editor-foreground);
+  cursor: pointer;
+}

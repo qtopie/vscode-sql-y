@@ -17,17 +17,16 @@
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onLanguage:SQL",
+    "onLanguage:sql",
     "onCommand:sql-y.write-sql-for-me",
     "onCommand:sql-y.openChat"
   ],
   "contributes": {
     "languages": [
       {
-        "id": "SQL",
+        "id": "sql",
         "aliases": [
-          "SQL",
-          "sql"
+          "SQL"
         ],
         "extensions": [
           ".sql"
@@ -36,7 +35,7 @@
     ],
     "grammars": [
       {
-        "language": "SQL",
+        "language": "sql",
         "scopeName": "source.sql",
         "path": "./syntaxes/sql.tmGrammar.json"
       }
@@ -131,6 +130,7 @@
     "@fluentui/react-icons": "^2.0.309",
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.8.0",
+    "@tanstack/react-virtual": "^3.13.12",
     "lucide-react": "^0.515.0",
     "markdown-to-jsx": "^7.7.13",
     "prismjs": "^1.30.0",

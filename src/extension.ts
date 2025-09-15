@@ -1,56 +1,32 @@
 import * as vscode from 'vscode';
 import { SqlYCopilotWebviewViewProvider } from './copilotWebviewViewProvider';
 import { client } from './grpcClient';
-
-/**
- * A simple debounce function to limit how often an async function is called.
- * This version correctly handles promise-based functions, ensuring that only
- * the final, "stopped typing" event triggers the function call.
- * @param func The async function to debounce.
- * @param delay The delay in milliseconds.
- */
-function debounce<T extends (...args: any[]) => Promise<any>>(func: T, delay: number): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>> | undefined> {
-	let timeoutId: NodeJS.Timeout | undefined;
-	let latestPromise: Promise<Awaited<ReturnType<T>> | undefined> | undefined;
-	let latestResolve: ((value: Awaited<ReturnType<T>> | undefined) => void) | undefined;
-
-	return function (...args: Parameters<T>): Promise<Awaited<ReturnType<T>> | undefined> {
-		// Clear any existing timeout to reset the timer on every new keystroke
-		clearTimeout(timeoutId);
-
-		// If there is no pending promise, create one
-		if (!latestPromise) {
-			latestPromise = new Promise(resolve => {
-				latestResolve = resolve;
-			});
-		}
-
-		// Set a new timeout
-		timeoutId = setTimeout(async () => {
-			try {
-				const result = await func(...args);
-				if (latestResolve) {
-					latestResolve(result);
-				}
-			} catch (error) {
-				console.error('Debounced function failed:', error);
-				if (latestResolve) {
-					latestResolve(undefined);
-				}
-			} finally {
-				// Clear the promise and resolve function after the debounced call is complete
-				latestPromise = undefined;
-				latestResolve = undefined;
-			}
-		}, delay);
-
-		return latestPromise;
-	};
-}
+import { isEmptyOrWhitespace, debounce } from './util';
 
 
-function isEmptyOrWhitespace(str: string | null | undefined): boolean {
-	return str === null || str === undefined || str.trim().length === 0;
+// A simple function to format the SQL text
+function formatSql(text: string): string {
+	// This is a very basic formatter.
+	// A real formatter would use a dedicated library.
+
+	// 1. Capitalize keywords (simplified)
+	const keywords = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'UPDATE', 'DELETE'];
+	let formattedText = text;
+	keywords.forEach(keyword => {
+		// Use a case-insensitive regex to find and replace keywords
+		const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+		formattedText = formattedText.replace(regex, keyword.toUpperCase());
+	});
+
+	// 2. Add a new line after each semicolon
+	formattedText = formattedText.replace(/;/g, ';\n');
+
+	// 3. Simple indentation logic (e.g., indent 'SELECT' and 'FROM')
+	formattedText = formattedText.replace(/(\n\s*)(FROM|WHERE)/g, (match, p1, p2) => {
+		return `\n    ${p2}`;
+	});
+
+	return formattedText;
 }
 
 // This method is called when your extension is activated
@@ -69,6 +45,22 @@ export function activate(context: vscode.ExtensionContext) {
 	} else {
 		console.log('No workspace folders found.');
 	}
+
+	// Register a document formatting provider for SQL files
+	vscode.languages.registerDocumentFormattingEditProvider('sql', {
+		provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.ProviderResult<vscode.TextEdit[]> {
+			const fullText = document.getText();
+			const formattedText = formatSql(fullText);
+
+			// Create a text edit to replace the entire document content with the formatted text
+			const range = new vscode.Range(
+				document.positionAt(0),
+				document.positionAt(fullText.length)
+			);
+
+			return [vscode.TextEdit.replace(range, formattedText)];
+		}
+	});
 
 	// Copilot WebView
 	const webviewViewProvider = new SqlYCopilotWebviewViewProvider(context.extensionUri);
@@ -153,12 +145,12 @@ export function activate(context: vscode.ExtensionContext) {
 		];
 	};
 
-	// Create a debounced version of the provider function with a 100ms delay
-	const debouncedProvider = debounce(provideInlineCompletions, 100);
+	// Create a debounced version of the provider function with a 300ms delay
+	const debouncedProvider = debounce(provideInlineCompletions, 300);
 
 	// Register the inline completion item provider for 'sql' language.
 	const codeCompletionProvider = vscode.languages.registerInlineCompletionItemProvider(
-		'SQL',
+		'sql',
 		{
 			provideInlineCompletionItems: (document, position) => {
 				return debouncedProvider(document, position);

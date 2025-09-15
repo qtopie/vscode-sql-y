@@ -1,44 +1,93 @@
 {
+  "name": "SQL",
   "scopeName": "source.sql",
+  "fileTypes": [
+    "sql"
+  ],
   "patterns": [
     {
-      "include": "#expression"
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#data-types"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#numbers"
     }
   ],
   "repository": {
-    "expression": {
+    "comments": {
       "patterns": [
         {
-          "include": "#letter"
+          "name": "comment.block.sql",
+          "begin": "/\\*",
+          "end": "\\*/"
         },
         {
-          "include": "#paren-expression"
+          "name": "comment.line.double-dash.sql",
+          "begin": "--",
+          "end": "\\n"
         }
       ]
     },
-    "letter": {
-      "match": "a|b|c",
-      "name": "keyword.letter"
-    },
-    "paren-expression": {
-      "begin": "\\(",
-      "end": "\\)",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.paren.open"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.paren.close"
-        }
-      },
-      "name": "expression.group",
+    "strings": {
+      "name": "string.quoted.single.sql",
+      "begin": "'",
+      "end": "'",
       "patterns": [
         {
-          "include": "#expression"
+          "name": "constant.character.escape.sql",
+          "match": "''"
         }
       ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.sql",
+          "match": "(?i)\\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|ALTER|DROP|TABLE|VIEW|INDEX|ORDER BY|GROUP BY|HAVING|LIMIT|OFFSET|JOIN|INNER JOIN|LEFT JOIN|RIGHT JOIN|FULL JOIN|ON|AS|DISTINCT|UNION|ALL|OR|AND|NOT|BETWEEN|LIKE|IS NULL|IS NOT NULL|IN|EXISTS)\\b"
+        }
+      ]
+    },
+    "data-types": {
+      "patterns": [
+        {
+          "name": "storage.type.sql",
+          "match": "(?i)\\b(INT|INTEGER|SMALLINT|BIGINT|TINYINT|NUMERIC|DECIMAL|FLOAT|REAL|DOUBLE PRECISION|VARCHAR|CHAR|NVARCHAR|TEXT|DATE|TIME|DATETIME|TIMESTAMP|BOOLEAN|BLOB)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "support.function.sql",
+          "match": "(?i)\\b(AVG|COUNT|SUM|MIN|MAX|LOWER|UPPER|LENGTH|SUBSTRING|CONCAT|COALESCE|NOW|CURRENT_DATE|CURRENT_TIME|SYSDATE)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.sql",
+          "match": "!=|<>|>=|<=|\\+|\\-|\\*|\\/|=|%|\\^"
+        }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.sql",
+      "match": "\\b[0-9]+(\\.[0-9]+)?\\b"
     }
   }
 }

@@ -1,65 +1,116 @@
-.container {
-  width: 100%;
-}
-
-#messages {
-  margin-top: 10px;
+/* Main container for the entire app view */
+.app-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  height: 100vh;
+  /* Full viewport height */
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--vscode-sideBar-background);
 }
 
+/* Container for the scrollable list of messages */
+.messages-list {
+  flex-grow: 1;
+  /* Takes up all available vertical space */
+  overflow-y: auto;
+  /* Enables scrolling */
+  padding: 10px;
+}
+
+/* Virtual item wrapper, absolutely positioned by the library */
+.virtual-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0 10px;
+  /* Padding for spacing from edges */
+  box-sizing: border-box;
+}
+
+/* Flex container for a single message (icon + card) */
 .message-container {
   display: flex;
   align-items: flex-start;
-  /* Aligns items to the top */
-  max-width: 80%;
-  /* Prevents messages from taking up the full width */
+  max-width: 90%;
+  margin-bottom: 12px;
 }
 
 /* Align user messages to the right */
 .user-container {
-  align-self: flex-end;
+  margin-left: auto;
+  /* Pushes the whole container to the right */
   flex-direction: row-reverse;
-  /* Reverses the order of the icon and card */
 }
 
 /* Align bot messages to the left */
 .bot-container {
-  align-self: flex-start;
+  margin-right: auto;
 }
 
 .message-icon {
   font-size: 24px;
-  margin: 0 10px;
-
-  /* Space between icon and message card */
-  /* For bot icon, adjust margin to be on the right side */
-  .user-container & {
-    margin: 0 0 0 10px;
-  }
+  margin: 8px;
+  color: var(--vscode-foreground);
 }
 
 /* Styling for the message bubble itself */
 .message {
-  padding: 10px 15px;
-  border-radius: 20px;
+  padding: 5px 15px;
+  border-radius: 12px;
+  width: auto;
+  box-shadow: var(--vscode-panel-border);
+}
+
+/* Simple paragraph styling for user's own message */
+.message-content {
+  white-space: pre-wrap;
+  /* Preserve newlines */
+  word-wrap: break-word;
+  /* Break long words */
+  margin: 10px 0;
 }
 
 .user-message {
-  background-color: #0078d4;
-  /* A nice blue for the user */
-  color: white;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
 }
 
 .bot-message {
-  background-color: #e5e5ea;
-  /* A light grey for the bot */
-  color: black;
+  background-color: var(--vscode-sideBar-background);
+  color: var(--vscode-foreground);
+  border: 1px solid var(--vscode-focusBorder);
+}
+
+/* Container for the input box and send button */
+.input-area {
+  display: flex;
+  align-items: flex-end;
+  padding: 10px;
+  border-top: 1px solid var(--vscode-sideBar-border);
+  gap: 8px;
+  background-color: var(--vscode-sideBar-background);
 }
 
 .input-box {
-  position: fixed;
-  bottom: 0;
-  padding: 10px;
+  width: 100%;
+  /* Take up remaining space */
+  max-height: 150px;
 }
+
+/* .code-block-container {
+  position: relative;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.copy-button {
+  position: absolute !important;
+  top: 5px !important;
+  right: 5px !important;
+  padding: 2px 3px !important;
+  border: none !important;
+  border-radius: 2px !important;
+  cursor: pointer !important;
+} */
