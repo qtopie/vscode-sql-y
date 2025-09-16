@@ -34,6 +34,12 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
       </div>
       <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
+        // Send a message to the extension when the webview is fully loaded
+        window.addEventListener('load', () => {
+            vscode.postMessage({
+                command: 'webviewIsReady'
+            });
+        });
       </script>
       <script nonce="${nonce}" src="${scriptUri}"></script>
     </body>

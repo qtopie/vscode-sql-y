@@ -6,8 +6,16 @@ export class SqlYCopilotWebviewViewProvider implements vscode.WebviewViewProvide
   public static readonly viewType = 'sqlYCopilotView';
 
   private _view?: vscode.WebviewView;
+  private _isReady: boolean = false;
+  private _readyPromise: Promise<void>;
+  private _readyResolve: () => void;
 
-  constructor(private readonly _extensionUri: vscode.Uri) { }
+  constructor(private readonly _extensionUri: vscode.Uri) {
+    this._readyResolve = () => { }; // Initialize with a no-op
+    this._readyPromise = new Promise(resolve => {
+      this._readyResolve = resolve;
+    });
+  }
 
   resolveWebviewView(webviewView: vscode.WebviewView): void {
     this._view = webviewView;
@@ -18,6 +26,16 @@ export class SqlYCopilotWebviewViewProvider implements vscode.WebviewViewProvide
         this._extensionUri
       ]
     };
+
+    this._view.webview.onDidReceiveMessage(message => {
+      switch (message.command) {
+        case 'webviewIsReady':
+          console.log('Webview is ready!');
+          this._isReady = true;
+          this._readyResolve(); // Resolve the promise
+          break;
+      }
+    });
 
     webviewView.webview.html = getWebviewContent(webviewView.webview, this._extensionUri);
 
@@ -41,6 +59,13 @@ export class SqlYCopilotWebviewViewProvider implements vscode.WebviewViewProvide
         });
       }
     });
+  }
+
+  public async waitForReady() {
+    if (this._isReady) {
+      return;
+    }
+    return this._readyPromise;
   }
 
   // A public method to send messages to the view

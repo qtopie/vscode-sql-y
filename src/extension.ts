@@ -162,6 +162,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Command to send data to the webview
 	const disposable = vscode.commands.registerCommand('sql-y.write-sql-for-me', async () => {
+		vscode.commands.executeCommand('workbench.view.extension.sqlYCopilotViewContainer');
+
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
 			const document = editor.document;
@@ -172,6 +174,7 @@ export function activate(context: vscode.ExtensionContext) {
 				filename: document.fileName
 			};
 
+			await webviewViewProvider.waitForReady();
 			// workaround for new message
 			webviewViewProvider.addRequestToWebview('write sql for me with file @' + document.fileName);
 			const call = client.Chat(userRequest);
@@ -182,7 +185,7 @@ export function activate(context: vscode.ExtensionContext) {
 				webviewViewProvider.endMessageToWebview();
 			});
 			call.on('error', (error: any) => {
-				console.error('gRPC stream error:', error);
+				console.error('stream error:', error);
 				webviewViewProvider.addMessageToWebview(`Error: ${error.message}`);
 			});
 		} else {

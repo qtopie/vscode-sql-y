@@ -60,7 +60,7 @@
       "commandPalette": [
         {
           "command": "sql-y.write-sql-for-me",
-          "when": "editorLangId == SQL"
+          "when": "editorLangId == sql"
         }
       ],
       "editor/title": [
