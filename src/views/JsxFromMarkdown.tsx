@@ -19,27 +19,38 @@ interface JsxFromMarkdownProps {
 
 SyntaxHighlighter.registerLanguage('sql', sql);
 
-// Custom Code component
+// Helper to extract language from className (supports lang- and language- prefixes)
+function extractLanguage(className?: string): string {
+  if (!className) return '';
+  const match = className.match(/lang(?:uage)?-([\w+-]+)/);
+  return match ? match[1] : '';
+}
+
+// Custom Code component supporting both inline and block code
 function Code({ className, children }: CodeBlockProps) {
-  // Extract language from className, default to 'plaintext' if not specified
-  const language = className ? className.replace('lang-', '') : 'plaintext';
-  const codeContent = String(children).replace(/\n$/, '');
+  const rawContent = String(children);
+  const codeContent = rawContent.replace(/\n$/, '');
+  const language = extractLanguage(className) || 'plaintext';
+  const isBlock = Boolean(extractLanguage(className));
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000); // Reset copied state after 2 seconds
+    setTimeout(() => setCopied(false), 2000);
   };
+
+  if (!isBlock) {
+    return <code className="inline-code">{codeContent}</code>;
+  }
 
   return (
     <div className="code-block-container">
-      {/* Header for language name and copy button */}
       <div className="code-block-header">
         <span className="code-language">{language}</span>
         <CopyToClipboard text={codeContent} onCopy={handleCopy}>
           <Button
-            size='small'
-            appearance='subtle'
+            size="small"
+            appearance="subtle"
             className="copy-button"
             title="Copy code"
           >
@@ -48,11 +59,10 @@ function Code({ className, children }: CodeBlockProps) {
         </CopyToClipboard>
       </div>
 
-      {/* Syntax highlighter component */}
       <SyntaxHighlighter
         language={language}
-        style={vs} // Using a dark theme that fits well with VS Code
-        customStyle={{ margin: 0, borderRadius: '0 0 5px 5px' }} // Remove default margins
+        style={vs}
+        customStyle={{ margin: 0, borderRadius: '0 0 5px 5px' }}
         showLineNumbers={true}
       >
         {codeContent}

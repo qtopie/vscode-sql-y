@@ -31,3 +31,15 @@
   color: var(--vscode-editor-foreground);
   cursor: pointer;
 }
+
+/* Inline code styling */
+.inline-code {
+  display: inline;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  background-color: var(--vscode-textCodeBlock-background, rgba(127, 127, 127, 0.15));
+  border: 1px solid var(--vscode-editorWidget-border, rgba(127, 127, 127, 0.25));
+  font-family: var(--vscode-editor-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+  font-size: 0.95em;
+  white-space: pre-wrap;
+}
