@@ -1,5 +1,6 @@
 {
   "name": "sql-y",
+  "type": "module",
   "displayName": "SQL-Y",
   "description": "A good helper to write sql.",
   "version": "0.0.6",
