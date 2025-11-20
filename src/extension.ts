@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SqlYCopilotWebviewViewProvider } from './copilotWebviewViewProvider';
 import { client } from './grpcClient';
 import { isEmptyOrWhitespace, debounce } from './util';
+import { ensureHomaRunning } from './homaManager';
 
 
 // A simple function to format the SQL text
@@ -30,7 +31,16 @@ function formatSql(text: string): string {
 }
 
 // This method is called when your extension is activated
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+	// Ensure homa backend is running (download/start if needed). Non-fatal.
+	try {
+		const ok = await ensureHomaRunning();
+		if (!ok) {
+			vscode.window.showWarningMessage('homa backend is not running. Some features may be limited.');
+		}
+	} catch (e) {
+		console.error('ensureHomaRunning failed', e);
+	}
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 
 	if (workspaceFolders && workspaceFolders.length > 0) {
